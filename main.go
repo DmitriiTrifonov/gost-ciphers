@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gost-ciphers/kuznechik/ecb"
+	"github.com/DmitriiTrifonov/gost-ciphers/kuznechik/ecb"
 	)
 
 func main() {
