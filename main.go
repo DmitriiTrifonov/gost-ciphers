@@ -40,13 +40,17 @@ func main() {
 
 	ecb.SetKey(&key)
 
+	tEnc := time.Now()
 	var encrypted = ecb.Encrypt(plaintext)
+	log.Println("Encryption:", time.Since(tEnc))
 	fmt.Print("\nCipher Encryption Result: ")
 	for i := 0; i < len(encrypted); i++ {
 		fmt.Printf("0x%X, ",encrypted[i])
 	}
 
+	tDec := time.Now()
 	var decrypted = ecb.Decrypt(cipherText)
+	log.Println("Decryption:", time.Since(tDec))
 
 	fmt.Print("\nCipher Decryption Result: ")
 	for i := 0; i < len(decrypted); i++ {
