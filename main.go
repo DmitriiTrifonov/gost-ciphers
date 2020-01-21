@@ -69,7 +69,7 @@ func main() {
 	defer f.Close()
 	defer o.Close()
 
-	var startTime = time.Now().UnixNano()
+	var startTime = time.Now()
 
 	var input [781250][]byte
 	for i := 0; i < 781250; i++ {
@@ -89,9 +89,12 @@ func main() {
 	i8 := input[(len(input) / 10) * 7 : (len(input) / 10) * 8 ]
 	i9 := input[(len(input) / 10) * 8 : (len(input) / 10) * 9 ]
 	i10 := input[(len(input) / 10) * 9 :]
+
 	println(len(i1))
+
 	c1 := make(chan [][]byte)
 	c2 := make(chan [][]byte)
+
 	go processTestEncrypt(i1, c1)
 	go processTestEncrypt(i2, c1)
 	go processTestEncrypt(i3, c1)
@@ -102,6 +105,7 @@ func main() {
 	go processTestEncrypt(i8, c2)
 	go processTestEncrypt(i9, c2)
 	go processTestEncrypt(i10, c2)
+
 	o1 := <-c1
 	o2 := <-c1
 	o3 := <-c1
@@ -113,22 +117,18 @@ func main() {
 	o9 := <-c2
 	o10 := <-c2
 
+	fmt.Println(time.Since(startTime))
 
-	var endTime = time.Now().UnixNano()
-
-
-	fmt.Println("\n", (endTime - startTime) / 1000000000, ":", (endTime - startTime) % 1000000000)
-
-	println(len(o1))
-	println(len(o2))
-	println(len(o3))
-	println(len(o4))
-	println(len(o5))
-	println(len(o6))
-	println(len(o7))
-	println(len(o8))
-	println(len(o9))
-	println(len(o10))
+	log.Println(len(o1))
+	log.Println(len(o2))
+	log.Println(len(o3))
+	log.Println(len(o4))
+	log.Println(len(o5))
+	log.Println(len(o6))
+	log.Println(len(o7))
+	log.Println(len(o8))
+	log.Println(len(o9))
+	log.Println(len(o10))
 }
 
 func processTestEncrypt(data [][]byte, c chan [][]byte) {
