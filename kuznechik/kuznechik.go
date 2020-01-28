@@ -1,8 +1,6 @@
-package ecb
+package kuznechik
 
-import "github.com/DmitriiTrifonov/gost-ciphers/kuznechik"
-
-var pi = [0x100]uint8{
+var pi = [0x100]byte{
 	0xFC, 0xEE, 0xDD, 0x11, 0xCF, 0x6E, 0x31, 0x16, // 00..07
 	0xFB, 0xC4, 0xFA, 0xDA, 0x23, 0xC5, 0x04, 0x4D, // 08..0F
 	0xE9, 0x77, 0xF0, 0xDB, 0x93, 0x2E, 0x99, 0xBA, // 10..17
@@ -37,7 +35,7 @@ var pi = [0x100]uint8{
 	0xD1, 0x66, 0xAF, 0xC2, 0x39, 0x4B, 0x63, 0xB6, // F8..FF
 }
 
-var reversePi = [0x100]uint8{
+var reversePi = [0x100]byte{
 	0xA5, 0x2D, 0x32, 0x8F, 0x0E, 0x30, 0x38, 0xC0, // 00..07
 	0x54, 0xE6, 0x9E, 0x39, 0x55, 0x7E, 0x52, 0x91, // 08..0F
 	0x64, 0x03, 0x57, 0x5A, 0x1C, 0x60, 0x07, 0x18, // 10..17
@@ -72,15 +70,19 @@ var reversePi = [0x100]uint8{
 	0xD6, 0x20, 0x0A, 0x08, 0x00, 0x4C, 0xD7, 0x74, // F8..FF
 }
 
-var lFactors = [0x10]uint8{
+var lFactors = [0x10]byte{
 	0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01, 0xFB,
 	0x01, 0xC0, 0xC2, 0x10, 0x85, 0x20, 0x94, 0x01,
 }
 
-var subKeys [0xA][0x10]uint8
+type Kuznechik struct {
+	Key [0x20]byte
+}
 
-func Encrypt(data [0x10]uint8) [0x10]uint8 {
-	var temp [0x10]uint8
+var subKeys [0xA][0x10]byte
+
+func (*Kuznechik) Encrypt(data [0x10]byte) []byte {
+	var temp [0x10]byte
 	block := data
 
 	for i := 0; i < 9; i++ {
@@ -90,10 +92,10 @@ func Encrypt(data [0x10]uint8) [0x10]uint8 {
 
 	x(&block, &subKeys[9])
 
-	return block
+	return block[:]
 }
 
-func Decrypt(data [0x10]uint8) [0x10]uint8 {
+func (*Kuznechik) Decrypt(data [0x10]byte) []byte {
 	block := data
 
 	for i := 9; i > 0; i-- {
@@ -104,30 +106,30 @@ func Decrypt(data [0x10]uint8) [0x10]uint8 {
 
 	x(&block, &subKeys[0])
 
-	return block
+	return block[:]
 }
 
-func s(data *[0x10]uint8) {
+func s(data *[0x10]byte) {
 	for i := 0; i < len(*data); i++ {
 		(*data)[i] = pi[(*data)[i]]
 	}
 }
 
-func revS(data *[0x10]uint8) {
+func revS(data *[0x10]byte) {
 	for i := 0; i < len(*data); i++ {
 		(*data)[i] = reversePi[(*data)[i]]
 	}
 }
 
-func x(result *[0x10]uint8, data *[0x10]uint8) {
+func x(result *[0x10]byte, data *[0x10]byte) {
 	for i := 0; i < len(*result); i++ {
 		result[i] ^= data[i]
 	}
 }
 
-func kuzMulGF256Slow(a uint8, b uint8) uint8 {
-	var p uint8 = 0
-	var hiBitSet uint8
+func kuzMulGF256Slow(a byte, b byte) byte {
+	var p byte = 0
+	var hiBitSet byte
 	for counter := 0; counter < 8; counter++ {
 		if (b & 1) != 0 {
 			p ^= a
@@ -142,11 +144,11 @@ func kuzMulGF256Slow(a uint8, b uint8) uint8 {
 	return p
 }
 
-func kuzMulGF256Fast(a uint8, b uint8) uint8 {
-	return kuznechik.MultTable[uint(a)*256+uint(b)]
+func kuzMulGF256Fast(a byte, b byte) byte {
+	return MultTable[uint(a)*256+uint(b)]
 }
 
-func r(data *[0x10]uint8) {
+func r(data *[0x10]byte) {
 	z := (*data)[0xF]
 	for i := 14; i > -1; i-- {
 		z ^= kuzMulGF256Fast((*data)[i], lFactors[i])
@@ -157,7 +159,7 @@ func r(data *[0x10]uint8) {
 	(*data)[0] = z
 }
 
-func revR(data *[0x10]uint8) {
+func revR(data *[0x10]byte) {
 	z := (*data)[0]
 	for i := 0; i < 15; i++ {
 		(*data)[i] = (*data)[i+1]
@@ -166,34 +168,34 @@ func revR(data *[0x10]uint8) {
 	(*data)[15] = z
 }
 
-func l(data *[0x10]uint8) {
+func l(data *[0x10]byte) {
 	for i := 0; i < 16; i++ {
 		r(data)
 	}
 }
 
-func revL(data *[0x10]uint8) {
+func revL(data *[0x10]byte) {
 	for i := 0; i < 16; i++ {
 		revR(data)
 	}
 }
 
-func lSX(result *[0x10]uint8, k *[0x10]uint8, a *[0x10]uint8) {
+func lSX(result *[0x10]byte, k *[0x10]byte, a *[0x10]byte) {
 	*result = *k
 	x(result, a)
 	s(result)
 	l(result)
 }
 
-func c(c *[0x10]uint8, i int) {
-	var arr [0x10]uint8
-	arr[15] = uint8(i)
+func c(c *[0x10]byte, i int) {
+	var arr [0x10]byte
+	arr[15] = byte(i)
 	l(&arr)
 	*c = arr
 }
 
-func f(k *[0x10]uint8, a1 *[0x10]uint8, a0 *[0x10]uint8) {
-	var temp [0x10]uint8
+func f(k *[0x10]byte, a1 *[0x10]byte, a0 *[0x10]byte) {
+	var temp [0x10]byte
 	lSX(&temp, k, a1)
 	x(&temp, a0)
 
@@ -201,15 +203,15 @@ func f(k *[0x10]uint8, a1 *[0x10]uint8, a0 *[0x10]uint8) {
 	*a1 = temp
 }
 
-func SetKey(key *[0x20]uint8) {
-	var x [0x10]uint8
-	var y [0x10]uint8
-	var cArr [0x10]uint8
+func (k *Kuznechik) SetKey() {
+	var x [0x10]byte
+	var y [0x10]byte
+	var cArr [0x10]byte
 
 	for i := 0; i < 16; i++ {
-		x[i] = key[i]
+		x[i] = k.Key[i]
 		subKeys[0][i] = x[i]
-		y[i] = key[i+0x10]
+		y[i] = k.Key[i+0x10]
 		subKeys[1][i] = y[i]
 	}
 
@@ -221,5 +223,13 @@ func SetKey(key *[0x20]uint8) {
 
 		subKeys[2*k] = x
 		subKeys[2*k+1] = y
+	}
+}
+
+func (k *Kuznechik) ResetKey() {
+	for i := 0; i < 10; i++ {
+		for j := 0; j < 16; j++ {
+			subKeys[i][j] = 0
+		}
 	}
 }
