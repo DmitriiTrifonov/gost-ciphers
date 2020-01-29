@@ -76,35 +76,41 @@ var lFactors = [0x10]byte{
 }
 
 type Kuznechik struct {
-	Key [0x20]byte
+	key [0x20]byte
+	subKeys [0xA][0x10]byte
 }
 
-var subKeys [0xA][0x10]byte
 
-func (*Kuznechik) Encrypt(data [0x10]byte) []byte {
+func (k *Kuznechik) Encrypt(data [0x10]byte) []byte {
 	var temp [0x10]byte
 	block := data
 
 	for i := 0; i < 9; i++ {
-		lSX(&temp, &subKeys[i], &block)
+		lSX(&temp, &k.subKeys[i], &block)
 		block = temp
 	}
 
-	x(&block, &subKeys[9])
+	x(&block, &k.subKeys[9])
 
 	return block[:]
 }
 
-func (*Kuznechik) Decrypt(data [0x10]byte) []byte {
+func (k *Kuznechik) SetKey(data []byte) {
+	var arr [0x20]byte
+	copy(arr[:], data[:0x20])
+	k.key = arr
+}
+
+func (k *Kuznechik) Decrypt(data [0x10]byte) []byte {
 	block := data
 
 	for i := 9; i > 0; i-- {
-		x(&block, &subKeys[i])
+		x(&block, &k.subKeys[i])
 		revL(&block)
 		revS(&block)
 	}
 
-	x(&block, &subKeys[0])
+	x(&block, &k.subKeys[0])
 
 	return block[:]
 }
@@ -203,33 +209,33 @@ func f(k *[0x10]byte, a1 *[0x10]byte, a0 *[0x10]byte) {
 	*a1 = temp
 }
 
-func (k *Kuznechik) SetKey() {
+func (k *Kuznechik) SetSubKeys() {
 	var x [0x10]byte
 	var y [0x10]byte
 	var cArr [0x10]byte
 
 	for i := 0; i < 16; i++ {
-		x[i] = k.Key[i]
-		subKeys[0][i] = x[i]
-		y[i] = k.Key[i+0x10]
-		subKeys[1][i] = y[i]
+		x[i] = k.key[i]
+		k.subKeys[0][i] = x[i]
+		y[i] = k.key[i+0x10]
+		k.subKeys[1][i] = y[i]
 	}
 
-	for k := 1; k < 5; k++ {
+	for m := 1; m < 5; m++ {
 		for j := 1; j <= 8; j++ {
-			c(&cArr, 8*(k-1)+j)
+			c(&cArr, 8*(m-1)+j)
 			f(&cArr, &x, &y)
 		}
 
-		subKeys[2*k] = x
-		subKeys[2*k+1] = y
+		k.subKeys[2*m] = x
+		k.subKeys[2*m+1] = y
 	}
 }
 
 func (k *Kuznechik) ResetKey() {
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 16; j++ {
-			subKeys[i][j] = 0
+			k.subKeys[i][j] = 0
 		}
 	}
 }
