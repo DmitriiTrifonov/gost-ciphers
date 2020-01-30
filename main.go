@@ -39,7 +39,7 @@ func main() {
 			fmt.Printf("0x%X ", dec[i])
 		}*/
 
-		//kuznechik.SelfCheck()
+		kuznechik.SelfCheck()
 	}
 
 }
