@@ -76,10 +76,9 @@ var lFactors = [0x10]byte{
 }
 
 type Kuznechik struct {
-	key [0x20]byte
+	key     [0x20]byte
 	subKeys [0xA][0x10]byte
 }
-
 
 func (k *Kuznechik) Encrypt(data [0x10]byte) []byte {
 	var temp [0x10]byte

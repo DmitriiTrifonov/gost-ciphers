@@ -29,32 +29,26 @@ var key = [0x20]byte{
 func SelfCheck() {
 	var average time.Duration
 	for i := 0; i < 1; i++ {
-		fmt.Println("Test No.", i + 1)
+		fmt.Println("Test No.", i+1)
 		average += run()
 	}
-	fmt.Println("Average time is:", average / 10)
+	fmt.Println("Average time is:", average/10)
 
 }
-
 
 func run() time.Duration {
 	runtime.GOMAXPROCS(10)
 	fmt.Println("Self Test Started:", time.Now())
-
 
 	fmt.Print("\nPlaintext: ")
 	for i := 0; i < len(plaintext); i++ {
 		fmt.Printf("0x%X, ", plaintext[i])
 	}
 
-
-
 	fmt.Print("\nCiphertext: ")
 	for i := 0; i < len(cipherText); i++ {
 		fmt.Printf("0x%X, ", cipherText[i])
 	}
-
-
 
 	var k = Kuznechik{}
 	k.SetKey(key[:])
@@ -99,7 +93,6 @@ func run() time.Duration {
 		panic(err)
 	}
 
-
 	bytes, err := ioutil.ReadAll(prOrig)
 
 	var input [][]byte
@@ -116,7 +109,7 @@ func run() time.Duration {
 	outFromChannels := make([][][]byte, 10)
 
 	for i := 0; i < 10; i++ {
-		out := <- ch
+		out := <-ch
 		outFromChannels[i] = out
 	}
 
@@ -127,7 +120,7 @@ func run() time.Duration {
 
 	bytesOc, err := ioutil.ReadAll(crOrig)
 
-	log.Println(float32(len(resultSlice)) / float32(1000000), "Mb")
+	log.Println(float32(len(resultSlice))/float32(1000000), "Mb")
 	log.Println(isEqual(resultSlice, bytesOc))
 	pOrig.Close()
 	prOrig.Close()
@@ -177,7 +170,7 @@ func splitTableToParts(in [][]byte, c int) [][][]byte {
 	s := make([][][]byte, c)
 	for i := 1; i <= c; i++ {
 		if i == c {
-			s[i-1] = in[(len(in)/c) * (i - 1) :]
+			s[i-1] = in[(len(in)/c)*(i-1):]
 		} else {
 			s[i-1] = in[(len(in)/c)*(i-1) : (len(in)/c)*i]
 		}
