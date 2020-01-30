@@ -28,7 +28,7 @@ var key = [0x20]byte{
 
 func SelfCheck() {
 	var average time.Duration
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		fmt.Println("Test No.", i + 1)
 		average += run()
 	}
