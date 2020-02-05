@@ -5,6 +5,14 @@ type Magma struct {
 	subKeys [0x20][4]byte
 }
 
+func (m *Magma) ResetSubKeys() {
+	for i := 0; i < 32; i++ {
+		for j := 0; j < 8; j++ {
+			m.subKeys[i][j] = 0
+		}
+	}
+}
+
 const t32 = 4294967296 // 2^32
 
 var pi = [8][16]byte{
