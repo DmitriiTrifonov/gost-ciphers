@@ -46,7 +46,6 @@ func main() {
 
 		startCipher(inLoop, isDecryptor, isKuzn, keyPath, delim)
 	} else {
-
 		magma.SelfCheck()
 		kuznechik.SelfCheck()
 	}
@@ -94,7 +93,10 @@ func startCipher(l bool, d bool, k bool, keyPath string, delim byte) {
 		log.Println("Splitted Output:", splitted)
 		for i := 0; i < len(splitted); i++ {
 			f := bufio.NewWriter(os.Stdout)
-			f.Write(splitted[i])
+			n, _ := f.Write(splitted[i])
+			f.WriteString("Hello")
+			log.Println("Bytes written:", n)
+			defer f.Flush()
 		}
 		if !l {
 			break
