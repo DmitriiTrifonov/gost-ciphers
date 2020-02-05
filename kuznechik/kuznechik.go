@@ -80,9 +80,11 @@ type Kuznechik struct {
 	subKeys [0xA][0x10]byte
 }
 
-func (k *Kuznechik) Encrypt(data [0x10]byte) []byte {
+func (k *Kuznechik) Encrypt(data []byte) []byte {
 	var temp [0x10]byte
-	block := data
+	var arr [0x10]byte
+	copy(arr[:], data)
+	block := arr
 
 	for i := 0; i < 9; i++ {
 		lSX(&temp, &k.subKeys[i], &block)
@@ -100,8 +102,10 @@ func (k *Kuznechik) SetKey(data []byte) {
 	k.key = arr
 }
 
-func (k *Kuznechik) Decrypt(data [0x10]byte) []byte {
-	block := data
+func (k *Kuznechik) Decrypt(data []byte) []byte {
+	var arr [0x10]byte
+	copy(arr[:], data)
+	block := arr
 
 	for i := 9; i > 0; i-- {
 		x(&block, &k.subKeys[i])
@@ -231,7 +235,7 @@ func (k *Kuznechik) SetSubKeys() {
 	}
 }
 
-func (k *Kuznechik) ResetKey() {
+func (k *Kuznechik) ResetSubKeys() {
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 16; j++ {
 			k.subKeys[i][j] = 0

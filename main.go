@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/DmitriiTrifonov/gost-ciphers/kuznechik"
+	"github.com/DmitriiTrifonov/gost-ciphers/magma"
 	"log"
 	"os"
 )
@@ -10,6 +11,7 @@ func main() {
 	if len(os.Args) > 1 {
 		log.Fatal("Not Implemented")
 	} else {
+
 		// Magma
 		/*key := []byte {
 			0xFF, 0xEE, 0xDD, 0xCC,   //
@@ -40,6 +42,8 @@ func main() {
 			fmt.Printf("0x%X ", dec[i])
 		}*/
 
+		//kuznechik.SelfCheck()
+		magma.SelfCheck()
 		kuznechik.SelfCheck()
 	}
 

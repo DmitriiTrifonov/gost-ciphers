@@ -1,8 +1,10 @@
 package util
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"runtime"
 )
 
 func WriteToFile(f *os.File, data []byte, c int) {
@@ -60,4 +62,15 @@ func IsEqual(r []byte, c []byte) string {
 		}
 	}
 	return "Everything is OK!"
+}
+
+func bytesToMb(b uint64) uint64 {
+	return b / 1000000
+}
+
+func PrintMemoryUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	fmt.Printf("Alloc;%v Mb\n", bytesToMb(m.Alloc))
+	fmt.Printf("Sys;%v Mb\n", bytesToMb(m.Sys))
 }

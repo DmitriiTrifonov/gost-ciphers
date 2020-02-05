@@ -1,11 +1,11 @@
 package magma
 
 type Magma struct {
-	key [0x20]byte
-	subKeys [0x20][]byte
+	key     [0x20]byte
+	subKeys [0x20][4]byte
 }
 
-const t32  = 4294967296 // 2^32
+const t32 = 4294967296 // 2^32
 
 var pi = [8][16]byte{
 	{1, 7, 14, 13, 0, 5, 8, 3, 4, 15, 10, 6, 9, 12, 11, 2},
@@ -18,15 +18,13 @@ var pi = [8][16]byte{
 	{12, 4, 6, 2, 10, 5, 11, 9, 14, 8, 13, 7, 0, 3, 15, 1},
 }
 
-func xor(a []byte, b []byte) []byte {
-	c := make([]byte, 4)
+func xor(a *[4]byte, b *[4]byte, o *[4]byte) {
 	for i := 0; i < 4; i++ {
-		c[i] = a[i] ^ b[i]
+		o[i] = a[i] ^ b[i]
 	}
-	return c
 }
 
-func convertToUInt32(a []byte) uint32 {
+func convertToUInt32(a *[4]byte) uint32 {
 	var r uint32
 	for i := 0; i < 3; i++ {
 		r |= uint32(a[i])
@@ -36,99 +34,94 @@ func convertToUInt32(a []byte) uint32 {
 	return r
 }
 
-func add32(a, b uint32) uint32 {
+/*func add32(a, b uint32) uint32 {
 	return uint32(int(a + b) % t32)
-}
+}*/
 
-func convertToArray(a uint32) []byte {
-	arr := make([]byte, 4)
+func convertToArray(a uint32, arr *[4]byte) {
 	arr[3] = byte(a)
 	arr[2] = byte(a >> 8)
 	arr[1] = byte(a >> 16)
 	arr[0] = byte(a >> 24)
-	return arr
 }
 
-func x32(a []byte, b []byte) []byte {
-	c := make([]byte, 4)
+func x32(a *[4]byte, b *[4]byte, o *[4]byte) {
 	var internal int
 	for i := 3; i >= 0; i-- {
 		internal = int(a[i]) + int(b[i]) + (internal >> 8)
-		c[i] = byte(internal & 0xFF)
+		o[i] = byte(internal & 0xFF)
 	}
-	return c
 }
 
 // Splits bytes in array by two 4 bits numbers and changes value from pi table
-func t(input []byte) []byte {
-	out := make([]byte, 4)
+func t(input *[4]byte, out *[4]byte) {
 	var fbp, sbp byte
 	for i := 0; i < 4; i++ {
 		fbp = (input[i] & 0xF0) >> 4
 		sbp = input[i] & 0x0F
-		fbp = pi[i * 2][fbp]
-		sbp = pi[i * 2 + 1][sbp]
+		fbp = pi[i*2][fbp]
+		sbp = pi[i*2+1][sbp]
 		out[i] = (fbp << 4) | sbp
 	}
-	return out
 }
 
 func (m *Magma) SetSubKeys() {
-	m.subKeys[0] = m.key[:4]
-	m.subKeys[1] = m.key[4:8]
-	m.subKeys[2] = m.key[8:12]
-	m.subKeys[3] = m.key[12:16]
-	m.subKeys[4] = m.key[16:20]
-	m.subKeys[5] = m.key[20:24]
-	m.subKeys[6] = m.key[24:28]
-	m.subKeys[7] = m.key[28:]
-	m.subKeys[8] = m.key[:4]
-	m.subKeys[9] = m.key[4:8]
-	m.subKeys[10] = m.key[8:12]
-	m.subKeys[11] = m.key[12:16]
-	m.subKeys[12] = m.key[16:20]
-	m.subKeys[13] = m.key[20:24]
-	m.subKeys[14] = m.key[24:28]
-	m.subKeys[15] = m.key[28:]
-	m.subKeys[16] = m.key[:4]
-	m.subKeys[17] = m.key[4:8]
-	m.subKeys[18] = m.key[8:12]
-	m.subKeys[19] = m.key[12:16]
-	m.subKeys[20] = m.key[16:20]
-	m.subKeys[21] = m.key[20:24]
-	m.subKeys[22] = m.key[24:28]
-	m.subKeys[23] = m.key[28:]
-	m.subKeys[24] = m.key[28:]
-	m.subKeys[25] = m.key[24:28]
-	m.subKeys[26] = m.key[20:24]
-	m.subKeys[27] = m.key[16:20]
-	m.subKeys[28] = m.key[12:16]
-	m.subKeys[29] = m.key[8:12]
-	m.subKeys[30] = m.key[4:8]
-	m.subKeys[31] = m.key[:4]
+	copy(m.subKeys[0][:], m.key[:4])
+	copy(m.subKeys[1][:], m.key[4:8])
+	copy(m.subKeys[2][:], m.key[8:12])
+	copy(m.subKeys[3][:], m.key[12:16])
+	copy(m.subKeys[4][:], m.key[16:20])
+	copy(m.subKeys[5][:], m.key[20:24])
+	copy(m.subKeys[6][:], m.key[24:28])
+	copy(m.subKeys[7][:], m.key[28:])
+	copy(m.subKeys[8][:], m.key[:4])
+	copy(m.subKeys[9][:], m.key[4:8])
+	copy(m.subKeys[10][:], m.key[8:12])
+	copy(m.subKeys[11][:], m.key[12:16])
+	copy(m.subKeys[12][:], m.key[16:20])
+	copy(m.subKeys[13][:], m.key[20:24])
+	copy(m.subKeys[14][:], m.key[24:28])
+	copy(m.subKeys[15][:], m.key[28:])
+	copy(m.subKeys[16][:], m.key[:4])
+	copy(m.subKeys[17][:], m.key[4:8])
+	copy(m.subKeys[18][:], m.key[8:12])
+	copy(m.subKeys[19][:], m.key[12:16])
+	copy(m.subKeys[20][:], m.key[16:20])
+	copy(m.subKeys[21][:], m.key[20:24])
+	copy(m.subKeys[22][:], m.key[24:28])
+	copy(m.subKeys[23][:], m.key[28:])
+	copy(m.subKeys[24][:], m.key[28:])
+	copy(m.subKeys[25][:], m.key[24:28])
+	copy(m.subKeys[26][:], m.key[20:24])
+	copy(m.subKeys[27][:], m.key[16:20])
+	copy(m.subKeys[28][:], m.key[12:16])
+	copy(m.subKeys[29][:], m.key[8:12])
+	copy(m.subKeys[30][:], m.key[4:8])
+	copy(m.subKeys[31][:], m.key[:4])
 }
 
-func gSwap(block, key []byte) []byte {
-	out32 := x32(block, key)
-	outT := t(out32)
-	n := convertToUInt32(outT)
+func gSwap(block *[4]byte, key *[4]byte, out *[4]byte) {
+	var out32 [4]byte
+	x32(block, key, &out32)
+	var outT [4]byte
+	t(&out32, &outT)
+	n := convertToUInt32(&outT)
 	n = (n << 11) | (n >> 21)
-	return convertToArray(n)
+	convertToArray(n, out)
 }
 
-func gIter(block, key []byte) []byte {
-	rh := make([]byte, 4)
-	lh := make([]byte, 4)
-	G := make([]byte, 4)
-	out := make([]byte, 8)
+func gIter(block *[8]byte, key *[4]byte, out *[8]byte) {
+	var rh [4]byte
+	var lh [4]byte
+	var G [4]byte
 
 	for i := 0; i < 4; i++ {
-		rh[i] = block[4 + i]
+		rh[i] = block[4+i]
 		lh[i] = block[i]
 	}
 
-	G = gSwap(key, rh)
-	G = xor(G,lh)
+	gSwap(key, &rh, &G)
+	xor(&G, &lh, &G)
 
 	for i := 0; i < 4; i++ {
 		lh[i] = rh[i]
@@ -137,24 +130,22 @@ func gIter(block, key []byte) []byte {
 
 	for i := 0; i < 4; i++ {
 		out[i] = lh[i]
-		out[4 + i] = rh[i]
+		out[4+i] = rh[i]
 	}
-	return out
 }
 
-func gFinal(block, key []byte) []byte {
-	rh := make([]byte, 4)
-	lh := make([]byte, 4)
-	G := make([]byte, 4)
-	out := make([]byte, 8)
+func gFinal(block *[8]byte, key *[4]byte, out *[8]byte) {
+	var rh [4]byte
+	var lh [4]byte
+	var G [4]byte
 
 	for i := 0; i < 4; i++ {
-		rh[i] = block[4 + i]
+		rh[i] = block[4+i]
 		lh[i] = block[i]
 	}
 
-	G = gSwap(key, rh)
-	G = xor(G,lh)
+	gSwap(key, &rh, &G)
+	xor(&G, &lh, &G)
 
 	for i := 0; i < 4; i++ {
 		lh[i] = G[i]
@@ -162,35 +153,41 @@ func gFinal(block, key []byte) []byte {
 
 	for i := 0; i < 4; i++ {
 		out[i] = lh[i]
-		out[4 + i] = rh[i]
+		out[4+i] = rh[i]
 	}
-	return out
 }
 
 func (m *Magma) Encrypt(data []byte) []byte {
-	out := make([]byte, 8)
-	out = gIter(data, m.subKeys[0])
+	var arr [8]byte
+	var out [8]byte
+	copy(arr[:], data)
+	block := arr
+	gIter(&block, &m.subKeys[0], &out)
 
 	for i := 1; i < 31; i++ {
-		out = gIter(out, m.subKeys[i])
+		gIter(&out, &m.subKeys[i], &out)
 	}
 
-	out = gFinal(out, m.subKeys[31])
+	gFinal(&out, &m.subKeys[31], &out)
 
-	return out
+	return out[:]
 }
 
 func (m *Magma) Decrypt(data []byte) []byte {
-	out := make([]byte, 8)
-	out = gIter(data, m.subKeys[31])
+	var arr [8]byte
+	var out [8]byte
+	copy(arr[:], data)
+	block := arr
+
+	gIter(&block, &m.subKeys[31], &out)
 
 	for i := 30; i > 0; i-- {
-		out = gIter(out, m.subKeys[i])
+		gIter(&out, &m.subKeys[i], &out)
 	}
 
-	out = gFinal(out, m.subKeys[0])
+	gFinal(&out, &m.subKeys[0], &out)
 
-	return out
+	return out[:]
 }
 
 func (m *Magma) SetKey(data []byte) {
