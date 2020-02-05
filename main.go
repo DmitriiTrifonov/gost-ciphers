@@ -91,12 +91,12 @@ func startCipher(l bool, d bool, k bool, keyPath string, delim byte) {
 
 		}
 		log.Println("Splitted Output:", splitted)
-		for i := 0; i < len(splitted); i++ {
+		for _, element := range splitted {
 			f := bufio.NewWriter(os.Stdout)
-			n, _ := f.Write(splitted[i])
-			f.WriteString("Hello")
+			n, _ := f.Write(element)
 			log.Println("Bytes written:", n)
-			defer f.Flush()
+			log.Println(element)
+			_ = f.Flush()
 		}
 		if !l {
 			break
