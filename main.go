@@ -1,50 +1,118 @@
 package main
 
 import (
+	"bufio"
 	"github.com/DmitriiTrifonov/gost-ciphers/kuznechik"
 	"github.com/DmitriiTrifonov/gost-ciphers/magma"
+	"github.com/DmitriiTrifonov/gost-ciphers/util"
+	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 )
 
 func main() {
 	if len(os.Args) > 1 {
-		log.Fatal("Not Implemented")
+		inLoop := false
+		isDecryptor := false
+		isKuzn := false
+		var delim byte
+		keyPath := ""
+		keyIndex, _ := util.ArgIndex("-key")
+		if keyIndex == -1 {
+			panic("Key has not found")
+		} else {
+			keyPath = os.Args[keyIndex + 1]
+		}
+
+		delimIndex, _ := util.ArgIndex("-delim")
+		if delimIndex != -1 {
+			i, _ := strconv.Atoi(os.Args[delimIndex + 1])
+			delim = byte(i)
+		}
+
+		for _, element := range os.Args {
+			switch element {
+			case "-l":
+				inLoop = true
+			case "-d":
+				isDecryptor = true
+			case "-k":
+				isKuzn = true
+			default:
+				continue
+			}
+		}
+
+		startCipher(inLoop, isDecryptor, isKuzn, keyPath, delim)
 	} else {
 
-		// Magma
-		/*key := []byte {
-			0xFF, 0xEE, 0xDD, 0xCC,   //
-			0xBB, 0xAA, 0x99, 0x88,   //
-			0x77, 0x66, 0x55, 0x44,   //
-			0x33, 0x22, 0x11, 0x00,   //
-			0xF0, 0xF1, 0xF2, 0xF3,   //
-			0xF4, 0xF5, 0xF6, 0xF7,   //
-			0xF8, 0xF9, 0xFA, 0xFB,   //
-			0xFC, 0xFD, 0xFE, 0xFF,   //
-		}
-		m := magma.Magma{}
-		m.SetKey(key)
-		m.SetSubKeys()
-		plaintext := []byte {
-			0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10,
-		}
-		ciphertext := []byte {
-			0x4E, 0xE9, 0x01, 0xE5, 0xC2, 0xD8, 0xCA, 0x3D,
-		}
-		enc := m.Encrypt(plaintext)
-		for i := 0; i < len(enc); i++ {
-			fmt.Printf("0x%X ", enc[i])
-		}
-		fmt.Println()
-		dec := m.Decrypt(ciphertext)
-		for i := 0; i < len(dec); i++ {
-			fmt.Printf("0x%X ", dec[i])
-		}*/
-
-		//kuznechik.SelfCheck()
 		magma.SelfCheck()
 		kuznechik.SelfCheck()
 	}
-
 }
+
+func startCipher(l bool, d bool, k bool, keyPath string, delim byte) {
+	var cipher Cipher
+	blockSize := 8
+	if k {
+		cipher = &kuznechik.Kuznechik{}
+		blockSize = 16
+	} else {
+		cipher = &magma.Magma{}
+	}
+	keyFile, _ := os.Open(keyPath)
+	key, _ := ioutil.ReadAll(keyFile)
+	keyFile.Close()
+	cipher.SetKey(key)
+	cipher.SetSubKeys()
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		buffer, _ := reader.ReadBytes(0x0A )
+		firstFlag := true
+		for len(buffer) % blockSize != 0 {
+			if firstFlag {
+				buffer = append(buffer, 0x80)
+				firstFlag = false
+			} else {
+				buffer = append(buffer, 0)
+			}
+		}
+		log.Println("Buffer", buffer)
+		splitted := split(buffer, blockSize)
+		log.Println("Splitted length", len(splitted))
+		log.Println("Splitted Input:", splitted)
+		for i := 0; i < len(splitted); i++ {
+
+				if d == true {
+					splitted[i] = cipher.Decrypt(splitted[i])
+				} else {
+					splitted[i] = cipher.Encrypt(splitted[i])
+				}
+
+		}
+		log.Println("Splitted Output:", splitted)
+		for i := 0; i < len(splitted); i++ {
+			f := bufio.NewWriter(os.Stdout)
+			f.Write(splitted[i])
+		}
+		if !l {
+			break
+		}
+	}
+}
+
+func split(buf []byte, lim int) [][]byte {
+	var chunk []byte
+	chunks := make([][]byte, 0, len(buf)/lim+1)
+	for len(buf) >= lim {
+		chunk, buf = buf[:lim], buf[lim:]
+		chunks = append(chunks, chunk)
+	}
+	if len(buf) > 0 {
+		chunks = append(chunks, buf[:len(buf)])
+	}
+	return chunks
+}
+
+
