@@ -16,15 +16,6 @@ const filesize = 12500000
 
 const block = 64
 
-var plaintext = [0x10]byte{
-	0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x00,
-	0xFF, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
-}
-
-var ciphertext = [0x10]byte{
-	0x7F, 0x67, 0x9D, 0x90, 0xBE, 0xBC, 0x24, 0x30,
-	0x5A, 0x46, 0x8D, 0x42, 0xB9, 0xD4, 0xED, 0xCD,
-}
 
 var key = [0x20]byte{
 	0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, // 00..07
@@ -73,34 +64,12 @@ func SelfCheck() {
 
 func run() time.Duration {
 	runtime.GOMAXPROCS(10)
-	/*fmt.Println("Self Test Started:", time.Now())
 
-	fmt.Print("\nPlaintext: ")
-	for i := 0; i < len(plaintext); i++ {
-		fmt.Printf("0x%X, ", plaintext[i])
-	}
-
-	fmt.Print("\nCiphertext: ")
-	for i := 0; i < len(ciphertext); i++ {
-		fmt.Printf("0x%X, ", ciphertext[i])
-	}*/
 
 	var k = Kuznechik{}
 	k.SetKey(key[:])
 	k.SetSubKeys()
 
-	/*var encrypted = k.Encrypt(plaintext[:])
-	fmt.Print("\nCipher Encryption Result: ")
-	for i := 0; i < len(encrypted); i++ {
-		fmt.Printf("0x%X, ", encrypted[i])
-	}
-
-	var decrypted = k.Decrypt(ciphertext[:])
-
-	fmt.Print("\nCipher Decryption Result: ")
-	for i := 0; i < len(decrypted); i++ {
-		fmt.Printf("0x%X, ", decrypted[i])
-	}*/
 	fmt.Println()
 
 	pOrig, err := os.Create("kuzn-plaintext-original")
