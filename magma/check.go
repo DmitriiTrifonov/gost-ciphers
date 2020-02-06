@@ -15,16 +15,6 @@ const filesize = 12500000
 
 const block = 32
 
-var plaintext = []byte{
-	//0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10,
-	0x92, 0xde, 0xf0, 0x6b, 0x3c, 0x13, 0x0a, 0x59,
-}
-
-var ciphertext = []byte{
-	//0x4E, 0xE9, 0x01, 0xE5, 0xC2, 0xD8, 0xCA, 0x3D,
-	0x2b, 0x07, 0x3f, 0x04, 0x94, 0xf3, 0x72, 0xa0,
-}
-
 // K=ffeeddccbbaa99887766554433221100f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff.
 var key = []byte{
 	0xFF, 0xEE, 0xDD, 0xCC, //
@@ -68,37 +58,12 @@ func SelfCheck() {
 }
 
 func run() time.Duration {
-	//runtime.GOMAXPROCS(0)
-	/*fmt.Println("Self Test Started:", time.Now())
 
-	fmt.Print("\nPlaintext: ")
-	for i := 0; i < len(plaintext); i++ {
-		fmt.Printf("0x%X, ", plaintext[i])
-	}
-
-	fmt.Print("\nCiphertext: ")
-	for i := 0; i < len(ciphertext); i++ {
-		fmt.Printf("0x%X, ", ciphertext[i])
-	}*/
 
 	var m = Magma{}
 	m.SetKey(key[:])
 	m.SetSubKeys()
 
-	/*var encrypted = m.Encrypt(plaintext[:])
-	fmt.Print("\nCipher Encryption Result: ")
-	for i := 0; i < len(encrypted); i++ {
-		fmt.Printf("0x%X, ", encrypted[i])
-	}
-
-	var decrypted = m.Decrypt(ciphertext[:])
-
-	fmt.Print("\nCipher Decryption Result: ")
-	for i := 0; i < len(decrypted); i++ {
-		fmt.Printf("0x%X, ", decrypted[i])
-	}
-	fmt.Println()
-	*/
 	pOrig, err := os.Create("magma-plaintext-original")
 	if err != nil {
 		panic(err)
