@@ -104,17 +104,15 @@ func startCipher(l bool, d bool, k bool, keyPath string, delim byte) {
 	}
 }
 
-func split(buf []byte, lim int) [][]byte {
-	var chunk []byte
-	chunks := make([][]byte, 0, len(buf)/lim+1)
-	for len(buf) >= lim {
-		chunk, buf = buf[:lim], buf[lim:]
-		chunks = append(chunks, chunk)
+
+func split(input []byte, size int) [][]byte {
+	times := len(input) / size
+	table := make([][]byte, times)
+	for i := 0; i < times; i++ {
+		table[i] = input[i*size:(i + 1)*size]
 	}
-	if len(buf) > 0 {
-		chunks = append(chunks, buf[:len(buf)])
-	}
-	return chunks
+	return table
 }
+
 
 
