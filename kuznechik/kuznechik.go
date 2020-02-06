@@ -1,5 +1,7 @@
 package kuznechik
 
+import "github.com/DmitriiTrifonov/gost-table/galois"
+
 var pi = [0x100]byte{
 	0xFC, 0xEE, 0xDD, 0x11, 0xCF, 0x6E, 0x31, 0x16, // 00..07
 	0xFB, 0xC4, 0xFA, 0xDA, 0x23, 0xC5, 0x04, 0x4D, // 08..0F
@@ -154,7 +156,7 @@ func kuzMulGF256Slow(a byte, b byte) byte {
 }
 
 func kuzMulGF256Fast(a byte, b byte) byte {
-	return MultTable[uint(a)*256+uint(b)]
+	return galois.MultTable[uint(a)*256+uint(b)]
 }
 
 func r(data *[0x10]byte) {
