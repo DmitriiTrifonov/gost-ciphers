@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 )
 
 func main() {
@@ -16,7 +17,8 @@ func main() {
 		inLoop := false
 		isDecryptor := false
 		isKuzn := false
-		var delim byte
+		sendDelim := false
+		var delim byte = 0x0A
 		keyPath := ""
 		keyIndex, _ := util.ArgIndex("-key")
 		if keyIndex == -1 {
@@ -29,6 +31,11 @@ func main() {
 		if delimIndex != -1 {
 			i, _ := strconv.Atoi(os.Args[delimIndex + 1])
 			delim = byte(i)
+		}
+		sendDelimIndex, _ := util.ArgIndex("-sd")
+
+		if sendDelimIndex != -1 {
+			sendDelim = true
 		}
 
 		for _, element := range os.Args {
@@ -44,14 +51,14 @@ func main() {
 			}
 		}
 
-		startCipher(inLoop, isDecryptor, isKuzn, keyPath, delim)
+		startCipher(inLoop, isDecryptor, isKuzn, keyPath, delim, sendDelim)
 	} else {
 		magma.SelfCheck()
 		kuznechik.SelfCheck()
 	}
 }
 
-func startCipher(l bool, d bool, k bool, keyPath string, delim byte) {
+func startCipher(l bool, d bool, k bool, keyPath string, delim byte, sd bool) {
 	var cipher Cipher
 	blockSize := 8
 	if k {
@@ -67,31 +74,53 @@ func startCipher(l bool, d bool, k bool, keyPath string, delim byte) {
 	cipher.SetSubKeys()
 	for {
 		reader := bufio.NewReader(os.Stdin)
-		buffer, _ := reader.ReadBytes(0x0A )
+		buffer, _ := reader.ReadBytes(delim)
 		firstFlag := true
-		for len(buffer) % blockSize != 0 {
-			if firstFlag {
-				buffer = append(buffer, 0x80)
-				firstFlag = false
-			} else {
-				buffer = append(buffer, 0)
-			}
+		if !sd {
+			buffer = buffer[:len(buffer) - 1]
 		}
+		if len(buffer) % blockSize != 0 {
+			for len(buffer) % blockSize != 0 {
+				if firstFlag {
+					buffer = append(buffer, 0x80)
+					firstFlag = false
+				} else {
+					buffer = append(buffer, 0)
+				}
+			}
+			padding := make([]byte, blockSize)
+			buffer = append(buffer, padding...)
+		} else {
+			padding := make([]byte, blockSize)
+			padding[0] = 0x80
+			buffer = append(buffer, padding...)
+		}
+
 		log.Println("Buffer", buffer)
 		splitted := split(buffer, blockSize)
-		log.Println("Splitted length", len(splitted))
+		log.Println("Splitted length:", len(splitted))
 		log.Println("Splitted Input:", splitted)
-		for i := 0; i < len(splitted); i++ {
 
+		wait := new(sync.WaitGroup)
+		out := make([][]byte, len(splitted))
+
+		for i, arr := range splitted {
+			wait.Add(1)
+			go func(j int) {
+				defer wait.Done()
 				if d == true {
-					splitted[i] = cipher.Decrypt(splitted[i])
+					out[j] = cipher.Decrypt(arr)
 				} else {
-					splitted[i] = cipher.Encrypt(splitted[i])
+					out[j] = cipher.Encrypt(arr)
 				}
-
+				log.Println("j", j)
+				log.Println("arr", arr)
+			}(i)
+			wait.Wait()
 		}
+
 		log.Println("Splitted Output:", splitted)
-		for _, element := range splitted {
+		for _, element := range out {
 			f := bufio.NewWriter(os.Stdout)
 			n, _ := f.Write(element)
 			log.Println("Bytes written:", n)
@@ -113,6 +142,8 @@ func split(input []byte, size int) [][]byte {
 	}
 	return table
 }
+
+
 
 
 
